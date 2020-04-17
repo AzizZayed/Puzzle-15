@@ -12,6 +12,12 @@ import java.awt.image.BufferStrategy;
 
 import javax.swing.JFrame;
 
+/**
+ * main class, manage the drawing and input
+ * 
+ * @author Zayed
+ *
+ */
 public class GameManager extends Canvas implements Runnable {
 
 	private static final long serialVersionUID = 1L;
@@ -22,35 +28,38 @@ public class GameManager extends Canvas implements Runnable {
 	// Game properties...
 	private Puzzle15Board puzzle;
 
+	/**
+	 * constructor
+	 */
 	public GameManager() {
 
-		initialise();
+		puzzle = new Puzzle15Board();
 		canvasSetup();
-
 		newWindow();
 
+		/*
+		 * listen for mouse presses
+		 */
 		this.addMouseListener(new MouseAdapter() {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				int i = e.getX() / puzzle.TILE_SIZE;
-				int j = e.getY() / puzzle.TILE_SIZE;
-
-				puzzle.tryMove(i, j);
-
+				puzzle.tryMove(e.getX(), e.getY(), false);
 			}
 
 		});
 
+		/*
+		 * listen for key presses
+		 */
 		this.addKeyListener(new KeyAdapter() {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
 				char key = e.getKeyChar();
 
-				if (key == 's') {
+				if (key == 's')
 					puzzle.animatedShuffle();
-				}
 			}
 
 		});
@@ -73,22 +82,12 @@ public class GameManager extends Canvas implements Runnable {
 	}
 
 	/**
-	 * initialize all our game objects
-	 */
-	private void initialise() {
-
-		puzzle = new Puzzle15Board();
-
-	}
-
-	/**
 	 * just to setup the canvas to our desired settings and sizes
 	 */
 	private void canvasSetup() {
-
-		this.setPreferredSize(new Dimension(puzzle.WIDTH, puzzle.HEIGHT));
-		this.setMaximumSize(new Dimension(puzzle.WIDTH, puzzle.HEIGHT));
-		this.setMinimumSize(new Dimension(puzzle.WIDTH, puzzle.HEIGHT));
+		this.setPreferredSize(new Dimension(puzzle.getWidth(), puzzle.getHeight()));
+		this.setMaximumSize(new Dimension(puzzle.getWidth(), puzzle.getHeight()));
+		this.setMinimumSize(new Dimension(puzzle.getWidth(), puzzle.getHeight()));
 	}
 
 	/**
@@ -189,7 +188,6 @@ public class GameManager extends Canvas implements Runnable {
 			 * BufferStrategy:
 			 * https://docs.oracle.com/javase/7/docs/api/java/awt/image/BufferStrategy.html
 			 */
-
 			return;
 		}
 
@@ -203,7 +201,7 @@ public class GameManager extends Canvas implements Runnable {
 
 		// draw Game Objects here
 		g.setColor(Color.black);
-		g.fillRect(0, 0, puzzle.WIDTH, puzzle.HEIGHT);
+		g.fillRect(0, 0, puzzle.getWidth(), puzzle.getHeight());
 
 		puzzle.draw(g);
 
@@ -217,10 +215,8 @@ public class GameManager extends Canvas implements Runnable {
 	 * update settings and move all objects
 	 */
 	public void update() {
-
 		// update Game Objects here
 		puzzle.update();
-
 	}
 
 	/**

@@ -5,18 +5,25 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.util.Random;
 
+/**
+ * the board with the game logic
+ * 
+ * @author Zayed
+ *
+ */
 public class Puzzle15Board {
 
-	public final int kSIZE = 4;
-	public final int INVISIBLE_TILE = kSIZE * kSIZE;
-	
-	public final int TILE_SIZE = 75;
-	public final int WIDTH = TILE_SIZE * kSIZE;
-	public final int HEIGHT = WIDTH;
+	private final int kSIZE = 4; // size of the board
+	private final int INVISIBLE_TILE = kSIZE * kSIZE; // the number off the invisible tile
 
-	private int grid[][];
-	private boolean solved = true;
+	private final int TILE_SIZE = 75; // size of a tile in pixels
+	private final int WIDTH = TILE_SIZE * kSIZE; // width of the board in pixels
+	private final int HEIGHT = WIDTH;// height of the board in pixels
 
+	private int grid[][]; // data structure containing the numbers for each tile
+	private boolean solved = true; // true if the board is solved
+
+	// indices of the empty/invisible tile
 	private int iEmpty;
 	private int jEmpty;
 
@@ -28,15 +35,33 @@ public class Puzzle15Board {
 	private int iAnim = -1, jAnim = -1;
 	private boolean animating = false;
 
+	/**
+	 * constructor
+	 */
 	public Puzzle15Board() {
-
 		initializeGrid();
 
 		iEmpty = kSIZE - 1;
 		jEmpty = kSIZE - 1;
-
 	}
 
+	/**
+	 * @return the WIDTH
+	 */
+	public int getWidth() {
+		return WIDTH;
+	}
+
+	/**
+	 * @return the HEIGHT
+	 */
+	public int getHeight() {
+		return HEIGHT;
+	}
+
+	/**
+	 * initialize the gird of numbersF
+	 */
 	private void initializeGrid() {
 		grid = new int[kSIZE][kSIZE];
 
@@ -47,23 +72,47 @@ public class Puzzle15Board {
 		}
 	}
 
-	public boolean tryMove(int i, int j) {
+	/**
+	 * try to move the tile
+	 * 
+	 * @param x       - x position, either in the board or in pixels
+	 * @param y       - y position, either in the board or in pixels
+	 * @param indices - true if the parameter passed were indices, false if
+	 *                coordinates and need conversion to indices
+	 * @return true if the move is possible, false otherwise
+	 */
+	public boolean tryMove(int x, int y, boolean indices) {
+
+		int i = x;
+		int j = y;
+
+		if (!indices) {
+			i /= TILE_SIZE;
+			j /= TILE_SIZE;
+		}
 
 		if (i < 0 || j < 0 || i >= kSIZE || j >= kSIZE) // out of bounds
 			return false;
-		
+
 		if (animating) // not to disturb current animation (if there is one)
 			return false;
 
 		if ((Math.abs(iEmpty - i) == 1 && jEmpty == j) || (Math.abs(jEmpty - j) == 1 && iEmpty == i)) {
-			startSwap(i, j, (int) (iEmpty - i), (int) (jEmpty - j));
+			startSwap(i, j, iEmpty - i, jEmpty - j);
 			return true;
 		}
 
 		return false;
-
 	}
 
+	/**
+	 * initialize the swap animation
+	 * 
+	 * @param i  - desired i index of position to swap
+	 * @param j  - desired j index of position to swap
+	 * @param di - horizontal swap direction
+	 * @param dj - vertical swap direction
+	 */
 	private void startSwap(int i, int j, int di, int dj) {
 
 		animating = true;
@@ -82,11 +131,14 @@ public class Puzzle15Board {
 
 	}
 
+	/**
+	 * animate the shuffle of the tiles
+	 */
 	public void animatedShuffle() {
 		int n = 0;
 		int max = kSIZE * 75;
 		Random r = new Random();
-		
+
 		float initSpeed = speed;
 		speed = TILE_SIZE / 2;
 		solved = false;
@@ -95,13 +147,16 @@ public class Puzzle15Board {
 			int x = (int) (iEmpty + r.nextInt(3) - 1);
 			int y = (int) (jEmpty + r.nextInt(3) - 1);
 
-			if (tryMove(x, y))
+			if (tryMove(x, y, true))
 				n++;
 		}
 
 		speed = initSpeed;
 	}
 
+	/**
+	 * check if the board is complete
+	 */
 	private void checkWin() {
 		boolean won = true;
 		int i = 0, j = 0;
@@ -118,9 +173,14 @@ public class Puzzle15Board {
 		solved = won;
 	}
 
+	/**
+	 * draw the board
+	 * 
+	 * @param g - Graphics drawing tool
+	 */
 	public void draw(Graphics g) {
-		Font font = new Font("Times New Roman", Font.BOLD, TILE_SIZE - 10);
-		g.setFont(font);
+		int size = TILE_SIZE - (kSIZE > 10 ? 30 : 10); // in case someone wants to change the constant
+		g.setFont(new Font("Times New Roman", Font.BOLD, size));
 
 		for (int i = 0; i < kSIZE; i++) {
 			for (int j = 0; j < kSIZE; j++) {
@@ -140,19 +200,17 @@ public class Puzzle15Board {
 					y = j * TILE_SIZE;
 				}
 
-				int size = TILE_SIZE;
-
 				g.setColor(Color.WHITE);
 				if (solved)
 					g.setColor(Color.GREEN);
-				g.fillRect(x, y, size, size);
+				g.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 
 				g.setColor(Color.BLACK);
-				g.drawRect(x, y, size, size);
+				g.drawRect(x, y, TILE_SIZE, TILE_SIZE);
 
 				String text = Integer.toString(value);
 
-				int strW = g.getFontMetrics(font).stringWidth(text);
+				int strW = g.getFontMetrics().stringWidth(text);
 				int strH = g.getFontMetrics().getHeight();
 
 				x += TILE_SIZE / 2 - strW / 2;
@@ -164,6 +222,9 @@ public class Puzzle15Board {
 		}
 	}
 
+	/**
+	 * update animation every frame
+	 */
 	public void update() {
 		if (animating) {
 			xAnim += xVel;
